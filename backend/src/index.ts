@@ -52,8 +52,6 @@ import {
 import autobahn from "autobahn";
 import { StakingStatus, SubscriptionTopicType } from "./client-types";
 import { formatDate, trimError } from "./utils";
-import { databases, withPool } from "./db";
-import { TELEMETRY_CREATE_TABLE_QUERY } from "./telemetry";
 
 type PoolMetadataAccountId = string;
 // See https://github.com/zavodil/near-pool-details/blob/master/FIELDS.md
@@ -99,6 +97,7 @@ function startDataSourceSpecificJobs(
   getSession: () => Promise<autobahn.Session>
 ): void {
   const regularCheckDataStats = async (): Promise<void> => {
+    console.log(`Starting regular data stats check from Indexer...`);
     try {
       const blocksStats = await queryDashboardBlocksStats();
       const recentTransactionsCount = await queryRecentTransactionsCount();
@@ -119,6 +118,7 @@ function startDataSourceSpecificJobs(
           getSession
         );
       }
+      console.log(`Regular data stats check from Indexer is completed.`);
     } catch (error) {
       console.warn(
         `Regular data stats check from Indexer is crashed due to: ${trimError(
@@ -133,6 +133,7 @@ function startDataSourceSpecificJobs(
 
 function startStatsAggregation(): void {
   const regularStatsAggregate = async (): Promise<void> => {
+    console.log("Starting Regular Stats Aggregation...");
     try {
       //stats part
       // circulating supply
@@ -169,19 +170,12 @@ function startStatsAggregation(): void {
 }
 
 async function main(): Promise<void> {
-  console.log("Starting Explorer backend & WAMP listener...");
+  console.log("Starting Explorer backend & WAMP worker...");
   const getSession = setupWamp();
-
-  // Skip initializing Telemetry database if the backend is not configured to
-  // save telemety data (it is absolutely fine for local development)
-  if (databases.telemetryBackendWriteOnlyPool) {
-    await withPool(databases.telemetryBackendWriteOnlyPool, (client) =>
-      client.query(TELEMETRY_CREATE_TABLE_QUERY)
-    );
-  }
 
   // regular transactions count
   const regularPublishTransactionsCount = async (): Promise<void> => {
+    console.log("Starting regular transactions count for week check...");
     try {
       transactionsCountHistoryForTwoWeeks = await queryTransactionsCountHistoryForTwoWeeks();
     } catch (error) {
@@ -199,6 +193,7 @@ async function main(): Promise<void> {
 
   // regularly publish the latest information about the height and timestamp of the final block
   const regularPublishFinalityStatus = async (): Promise<void> => {
+    console.log("Starting regular final timestamp check...");
     try {
       const finalBlock = await queryFinalBlock();
       void wampPublish(
@@ -209,6 +204,7 @@ async function main(): Promise<void> {
         },
         getSession
       );
+      console.log("Regular final timestamp check is completed.");
     } catch (error) {
       console.warn("Regular final timestamp check crashed due to:", error);
     }
@@ -221,6 +217,7 @@ async function main(): Promise<void> {
 
   // regularly publish information about validators, proposals, staking pools, and online nodes
   const regularPublishNetworkInfo = async (): Promise<void> => {
+    console.log("Starting regular network info publishing...");
     try {
       const epochStats = await queryEpochStats();
 
@@ -249,14 +246,12 @@ async function main(): Promise<void> {
           // 'active', 'joining', 'leaving' and 'proposal'.
           // So here we set, check and regulary re-check is validators
           // still has those statuses
+          let stakingStatus: StakingStatus | undefined;
           const currentStake =
             "currentStake" in validator ? validator.currentStake : "0";
-          let stakingStatus: StakingStatus | undefined =
-            "stakingStatus" in validator ? validator.stakingStatus : undefined;
-
           if (
-            !stakingStatus ||
-            nonValidatingNodeStatuses.indexOf(stakingStatus) >= 0
+            !("stakingStatus" in validator) ||
+            nonValidatingNodeStatuses.indexOf(validator.stakingStatus) >= 0
           ) {
             if (new BN(currentStake).gt(new BN(epochStats.seatPrice))) {
               stakingStatus = "on-hold";
@@ -326,6 +321,7 @@ async function main(): Promise<void> {
           getSession
         );
       }
+      console.log("Regular network info publishing is completed.");
     } catch (error) {
       console.warn("Regular network info publishing crashed due to:", error);
     }
@@ -337,6 +333,7 @@ async function main(): Promise<void> {
   // This query works only for 'mainnet'
   function startRegularFetchStakingPoolsMetadataInfo(): void {
     const regularFetchStakingPoolsMetadataInfo = async (): Promise<void> => {
+      console.log(`Starting regular fetching staking pools metadata info...`);
       try {
         const queryRowsCount = 100;
         const fetchPoolsMetadataInfo = (
