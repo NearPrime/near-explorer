@@ -1,6 +1,12 @@
 import * as RPC from "../../../../backend/src/rpc-types";
-import { Account } from "../../types/account";
-import { AccountId, TransactionHash, UTCTimestamp } from "../../types/nominal";
+import { Account, AccountActivity } from "../../types/account";
+import {
+  AccountId,
+  BlockHash,
+  ReceiptId,
+  TransactionHash,
+  UTCTimestamp,
+} from "../../types/nominal";
 
 export type TransactionCountHistory = {
   date: string;
@@ -173,13 +179,13 @@ export type ReceiptExecutionStatus =
 
 export type Receipt = {
   actions: Action[];
-  blockTimestamp: number;
-  receiptId: string;
+  blockTimestamp: UTCTimestamp;
+  receiptId: ReceiptId;
   gasBurnt: string;
-  receiverId: string;
-  signerId: string;
+  receiverId: AccountId;
+  signerId: AccountId;
   status?: ReceiptExecutionStatus;
-  originatedFromTransactionHash?: string | null;
+  originatedFromTransactionHash: TransactionHash;
   tokensBurnt: string;
 };
 
@@ -255,11 +261,11 @@ export type ActionMapping = {
 };
 
 export type TransactionBaseInfo = {
-  hash: string;
-  signerId: string;
-  receiverId: string;
-  blockHash: string;
-  blockTimestamp: number;
+  hash: TransactionHash;
+  signerId: AccountId;
+  receiverId: AccountId;
+  blockHash: BlockHash;
+  blockTimestamp: UTCTimestamp;
   transactionIndex: number;
   actions: Action[];
 };
@@ -298,10 +304,9 @@ export type ProcedureTypes = {
     args: [string];
     result: AccountBasicInfo | null;
   };
-  // TODO: seems unused on client side, should we remove it?
   "account-activity": {
-    args: [string];
-    result: unknown;
+    args: [AccountId, number, UTCTimestamp | null];
+    result: AccountActivity;
   };
   "get-account-details": {
     args: [string];
