@@ -14,7 +14,7 @@ import { GetServerSideProps, NextPage } from "next";
 import { useAnalyticsTrackOnMount } from "../../hooks/analytics/use-analytics-track-on-mount";
 import wampApi from "../../libraries/wamp/api";
 import { getNearNetwork } from "../../libraries/config";
-import { Account, getAccount } from "../../providers/accounts";
+import { AccountOld, getAccountOld } from "../../providers/accounts";
 import { styled } from "../../libraries/styles";
 import * as React from "react";
 
@@ -24,7 +24,7 @@ const TransactionIcon = styled(TransactionIconSvg, {
 
 interface Props {
   accountId: string;
-  account?: Account;
+  account?: AccountOld;
   accountFetchingError?: unknown;
   accountError?: unknown;
 }
@@ -106,7 +106,7 @@ export const getServerSideProps: GetServerSideProps<
         return {
           props: {
             ...commonProps,
-            account: await getAccount(wampCall, accountId),
+            account: await getAccountOld(wampCall, accountId),
           },
         };
       } catch (accountFetchingError) {

@@ -9,7 +9,7 @@ import Link from "../utils/Link";
 
 import { useTranslation } from "react-i18next";
 import { useWampQuery } from "../../hooks/wamp";
-import { Account, getAccount } from "../../providers/accounts";
+import { AccountOld, getAccountOld } from "../../providers/accounts";
 import { styled } from "../../libraries/styles";
 
 const TransactionRow = styled(Row, {
@@ -62,8 +62,8 @@ export interface State {
 
 const AccountRow: React.FC<Props> = React.memo(({ accountId }) => {
   const { t } = useTranslation();
-  const accountInfo = useWampQuery<Account>(
-    React.useCallback((wampCall) => getAccount(wampCall, accountId), [
+  const accountInfo = useWampQuery<AccountOld>(
+    React.useCallback((wampCall) => getAccountOld(wampCall, accountId), [
       accountId,
     ])
   );

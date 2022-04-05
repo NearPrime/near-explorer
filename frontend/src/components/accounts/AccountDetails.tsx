@@ -15,7 +15,7 @@ import StorageSize from "../utils/StorageSize";
 import { Trans, useTranslation } from "react-i18next";
 import { useNetworkContext } from "../../hooks/use-network-context";
 import { useWampSimpleQuery } from "../../hooks/wamp";
-import { Account } from "../../providers/accounts";
+import { AccountOld } from "../../providers/accounts";
 import { styled } from "../../libraries/styles";
 
 const AccountInfoContainer = styled("div", {
@@ -40,7 +40,7 @@ const ColoredCell = styled(CardCell, {
 });
 
 export interface Props {
-  account: Partial<Omit<Account, "accountId">> & {
+  account: Partial<Omit<AccountOld, "accountId">> & {
     accountId: string;
   };
 }

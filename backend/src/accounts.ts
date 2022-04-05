@@ -1,5 +1,11 @@
 import BN from "bn.js";
 import { sha256 } from "js-sha256";
+import {
+  Bytes,
+  TransactionHash,
+  UTCTimestamp,
+  YoctoNEAR,
+} from "../../frontend/src/types/nominal";
 
 import {
   AccountBasicInfo,
@@ -32,7 +38,9 @@ async function getAccountsList(
   const accountsList = await queryAccountsList(limit, paginationIndexer);
   return accountsList.map((account) => ({
     accountId: account.account_id,
-    createdAtBlockTimestamp: parseInt(account.created_at_block_timestamp),
+    createdAtBlockTimestamp: parseInt(
+      account.created_at_block_timestamp
+    ) as UTCTimestamp,
     accountIndex: parseInt(account.account_index),
   }));
 }
@@ -59,15 +67,14 @@ async function getAccountInfo(
   }
   return {
     accountId: accountInfo.account_id,
-    createdByTransactionHash:
-      accountInfo.created_by_transaction_hash || undefined,
-    createdAtBlockTimestamp: accountInfo.created_at_block_timestamp
-      ? parseInt(accountInfo.created_at_block_timestamp)
-      : undefined,
+    createdByTransactionHash: accountInfo.created_by_transaction_hash as TransactionHash,
+    createdAtBlockTimestamp: parseInt(
+      accountInfo.created_at_block_timestamp
+    ) as UTCTimestamp,
     deletedByTransactionHash:
-      accountInfo.deleted_by_transaction_hash || undefined,
+      (accountInfo.deleted_by_transaction_hash as TransactionHash) || undefined,
     deletedAtBlockTimestamp: accountInfo.deleted_at_block_timestamp
-      ? parseInt(accountInfo.deleted_at_block_timestamp)
+      ? (parseInt(accountInfo.deleted_at_block_timestamp) as UTCTimestamp)
       : undefined,
   };
 }
@@ -227,12 +234,12 @@ const getAccountDetails = async (accountId: string) => {
   }
 
   return {
-    storageUsage: storageUsage.toString(),
-    stakedBalance: stakedBalance.toString(),
-    nonStakedBalance: nonStakedBalance.toString(),
+    storageUsage: storageUsage.toString() as Bytes,
+    stakedBalance: stakedBalance.toString() as YoctoNEAR,
+    nonStakedBalance: nonStakedBalance.toString() as YoctoNEAR,
     minimumBalance: minimumBalance.toString(),
     availableBalance: availableBalance.toString(),
-    totalBalance: totalBalance.toString(),
+    totalBalance: totalBalance.toString() as YoctoNEAR,
     lockupAccountId: lockupDetails?.accountId,
     lockupTotalBalance: lockupDetails?.totalBalance,
     lockupLockedBalance: lockupDetails?.lockedBalance,

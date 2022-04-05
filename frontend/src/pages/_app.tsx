@@ -2,6 +2,7 @@ import "../libraries/wdyr";
 import NextApp, { AppContext, AppInitialProps } from "next/app";
 import Head from "next/head";
 import * as React from "react";
+import * as ReactQuery from "react-query";
 
 import { getConfig, getNearNetwork, NearNetwork } from "../libraries/config";
 
@@ -78,8 +79,37 @@ declare module "next/app" {
   }
 }
 
+type ContextProps = {
+  queryClient: ReactQuery.QueryClient;
+  dehydratedState: unknown;
+  networkState: NetworkContext;
+};
+
+const AppContextWrapper: React.FC<ContextProps> = React.memo((props) => {
+  return (
+    <ReactQuery.QueryClientProvider client={props.queryClient}>
+      <ReactQuery.Hydrate state={props.dehydratedState}>
+        <NetworkContext.Provider value={props.networkState}>
+          {props.children}
+        </NetworkContext.Provider>
+      </ReactQuery.Hydrate>
+    </ReactQuery.QueryClientProvider>
+  );
+});
+
 const App: AppType = React.memo(
   ({ Component, currentNearNetwork, language, pageProps }) => {
+    const [queryClient] = React.useState(
+      () =>
+        new ReactQuery.QueryClient({
+          defaultOptions: {
+            queries: {
+              refetchOnWindowFocus: false,
+              retry: false,
+            },
+          },
+        })
+    );
     if (typeof window !== "undefined" && language) {
       setMomentLanguage(language);
       // There is no react way of waiting till i18n is initialized before render
@@ -110,14 +140,18 @@ const App: AppType = React.memo(
             content="initial-scale=1.0, width=device-width"
           />
         </Head>
-        <NetworkContext.Provider value={networkState}>
+        <AppContextWrapper
+          queryClient={queryClient}
+          dehydratedState={pageProps.dehydratedState}
+          networkState={networkState}
+        >
           <AppWrapper>
             <Header />
             <BackgroundImage src="/static/images/explorer-bg.svg" />
             <Component {...pageProps} />
           </AppWrapper>
           <Footer />
-        </NetworkContext.Provider>
+        </AppContextWrapper>
         {googleAnalytics ? (
           <>
             <script

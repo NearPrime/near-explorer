@@ -1,4 +1,6 @@
 import * as RPC from "../../../../backend/src/rpc-types";
+import { Account } from "../../types/account";
+import { AccountId, TransactionHash, UTCTimestamp } from "../../types/nominal";
 
 export type TransactionCountHistory = {
   date: string;
@@ -109,8 +111,8 @@ export type SubscriptionTopicType = keyof SubscriptionTopicTypes;
 
 export type AccountBasicInfo = {
   accountId: string;
-  createdByTransactionHash?: string;
-  createdAtBlockTimestamp?: number;
+  createdByTransactionHash: TransactionHash;
+  createdAtBlockTimestamp: UTCTimestamp;
   deletedByTransactionHash?: string;
   deletedAtBlockTimestamp?: number;
 };
@@ -138,7 +140,11 @@ export type AccountPagination = {
   accountIndex: number;
 };
 
-export type PaginatedAccountBasicInfo = AccountBasicInfo & AccountPagination;
+export type PaginatedAccountBasicInfo = Pick<
+  AccountBasicInfo,
+  "accountId" | "createdAtBlockTimestamp"
+> &
+  AccountPagination;
 
 export type BlockBase = {
   hash: string;
@@ -284,6 +290,10 @@ export type TelemetryRequest = {
 };
 
 export type ProcedureTypes = {
+  account: {
+    args: [AccountId];
+    result: Account | null;
+  };
   "account-info": {
     args: [string];
     result: AccountBasicInfo | null;
