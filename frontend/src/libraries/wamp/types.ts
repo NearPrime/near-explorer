@@ -189,8 +189,6 @@ export type Receipt = {
   tokensBurnt: string;
 };
 
-// from the search side 'originatedFromTransactionHash'
-// can't be null
 export type TransactionHashByReceiptId = {
   receiptId: string;
   originatedFromTransactionHash: string;
